@@ -1,0 +1,39 @@
+{
+  "name": "todolist",
+  "version": "1.0.0",
+  "description": "ToDoList scheduler",
+  "private": "true",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "webpack --watch",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iskoclordu/todolist.git"
+  },
+  "keywords": [],
+  "author": "iskoclordu <abdulkadirlivaoglu@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/iskoclordu/todolist/issues"
+  },
+  "homepage": "https://github.com/iskoclordu/todolist#readme",
+  "devDependencies": {
+    "css-loader": "^6.7.3",
+    "csv-loader": "^3.0.5",
+    "eslint": "^8.32.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-import": "^2.27.5",
+    "html-webpack-plugin": "^5.5.0",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1",
+    "xml-loader": "^1.2.1"
+  },
+  "dependencies": {
+    "date-fns": "^2.29.3",
+    "lodash": "^4.17.21"
+  }
+}
