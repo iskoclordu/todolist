@@ -134,7 +134,7 @@ const moduleDomFunctions = (() => {
     const allActivitiesStat = document.querySelector('button.all-activities span.stat');
     allActivitiesStat.innerHTML = `${stats.noOfActivitiesAll()}`;
 
-    if (activities[id].activity.isCompleted) {
+    if (activities[id].activity.isCompleted.toString() === 'true') {
       infoContainer.style.textDecoration = 'line-through';
       checkBox.setAttribute('checked', '');
     }
@@ -219,8 +219,6 @@ const moduleDomFunctions = (() => {
     for (let i = 0; i < projects.length; i += 1) {
       const a = document.createElement('a');
       const projectStat = stats.noOfActivitiesProject(projects[i]).length;
-      console.log('-----');
-      console.table(projectStat);
       a.innerHTML = `${projects[i]} <span id=${projects[i]}>${projectStat}</span>`;
       a.setAttribute('id', `${projects[i]}`);
       a.setAttribute('href', '#!');

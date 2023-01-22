@@ -11,11 +11,13 @@ import {
   callhidePopup, callresetForm, callCreateActivityDiv, callDisplayProjects,
   callDisplayActivityReadOnly, callDisplayActivityEditable,
 } from './domMan';
-import validCheck from './validation';
+import { validCheckRequired, validCheckExist } from './validation';
 
 let filterHeader = 'Today';
 let currentFilter = 'filterActivitiesToday';
+
 let displayActivitiesSorted = getDisplayActivities().sort(sort.byDate);
+
 let parameter = 'date';
 const getSortBy = (param) => {
   if (getDisplayActivities().length > 0) {
@@ -48,7 +50,6 @@ const saveButtonActivator = () => {
   // eslint-disable-next-line no-use-before-define
   saveButton.addEventListener('click', save);
 };
-saveButtonActivator();
 
 const cancelButton = document.querySelector('.popup.activity .buttons .cancel');
 cancelButton.addEventListener('click', () => {
@@ -71,6 +72,7 @@ const deleteButtonActivator = () => {
       } else {
         indexNumber = e.target.parentNode.id;
       }
+      console.log(indexNumber);
 
       removeActivity(indexNumber);
       // eslint-disable-next-line no-use-before-define
@@ -110,7 +112,7 @@ const editButtonActivator = () => {
         indexNumber = e.target.parentNode.id;
       }
 
-      if (validCheck()) {
+      if (validCheckRequired()) {
         editActivity(indexNumber);
         callhidePopup();
         callresetForm();
@@ -129,9 +131,10 @@ function showActivities() {
   header.classList.add('header');
   header.innerHTML = `${filterHeader}`;
   mainContainer.appendChild(header);
+  console.log(getDisplayActivities());
   getSortBy(parameter);
   const displayActivities = displayActivitiesSorted;
-
+  console.log(displayActivitiesSorted);
   for (let i = 0; i < displayActivities.length; i += 1) {
     if (displayActivities[i] !== undefined) {
       callCreateActivityDiv(displayActivities, i, '.todos');
@@ -216,10 +219,8 @@ function filterAndShow(filter, arg) {
   showActivities();
 }
 
-filterAndShow(currentFilter);
-
 function save() {
-  if (validCheck()) {
+  if (validCheckRequired() && validCheckExist()) {
     saveActivity();
     callhidePopup();
     callresetForm();
@@ -254,3 +255,6 @@ sortSelect.addEventListener('change', (e) => {
   getSortBy(parameter);
   filterAndShow(currentFilter);
 });
+
+filterAndShow(currentFilter);
+saveButtonActivator();
