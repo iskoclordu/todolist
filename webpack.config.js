@@ -6,6 +6,8 @@ module.exports = {
   entry: {
     index: './src/index.js',
     activity: './src/activity.js',
+    domMan: './src/domMan.js',
+    validation: './src/validation.js',
   },
   output: {
     filename: '[name].bundle.js',
