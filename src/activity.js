@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 
 import startingData from './starting-data.csv';
-
+// this array to cache activities during session
 const activities = [];
 
 class Activity {
@@ -16,6 +16,7 @@ class Activity {
   }
 }
 
+// to save activities on local storage
 const saveToStorage = () => {
   localStorage.clear();
 
@@ -28,18 +29,13 @@ const saveToStorage = () => {
       localStorage.setItem(`project${activities[i].id}`, `${activities[i].activity.project}`);
       localStorage.setItem(`notes${activities[i].id}`, `${activities[i].activity.notes}`);
       localStorage.setItem(`isCompleted${activities[i].id}`, `${activities[i].activity.isCompleted}`);
+      localStorage.setItem(`id${activities[i].id}`, `${activities[i].id}`);
     }
   }
 };
 
-const callDefault = () => {
-  for (let i = 1; i < startingData.length; i += 1) {
-    const activity = new Activity(startingData[i][0], startingData[i][1], startingData[i][2], startingData[i][3], startingData[i][4], startingData[i][5], startingData[i][6]);
-    activities.push({ activity, id: activities.length });
-  }
-  saveToStorage();
-};
-
+// since items in storage are sometimes deleted, to parse from local storage dirst checked for element with highest id.
+// ids of element are also saved after property names. so an item with id of '14' is also 'title14' and title is a must for all activities.
 const getHighestIndex = (array) => {
   const arrayRaw = Object.getOwnPropertyNames(array);
   const arrayFiltered = arrayRaw.filter((string) => string.startsWith('title'));
@@ -52,11 +48,12 @@ const getHighestIndex = (array) => {
 
 const isNull = (value) => (value !== null ? value : '');
 const isNullDate = (value) => (value !== null ? value : format(new Date(), 'MM/dd/yyyy'));
-
-const readStorage = () => {
+// reads local storage. since some of the items are deleted and local storage doesnt work in same way array of activities do,
+// read all data up to maksimum even the null ones. But function deletes those empty elements just after creating.
+(function readStorage() {
   const length = getHighestIndex(localStorage);
 
-  if (localStorage.length >= 7) {
+  if (localStorage.length >= 8) {
     for (let i = 0; i <= length; i += 1) {
       const title = isNull(localStorage.getItem(`title${i}`));
       const description = isNull(localStorage.getItem(`description${i}`));
@@ -65,17 +62,17 @@ const readStorage = () => {
       const project = isNull(localStorage.getItem(`project${i}`));
       const notes = isNull(localStorage.getItem(`notes${i}`));
       const isCompleted = isNull(localStorage.getItem(`isCompleted${i}`));
+      const id = isNull(localStorage.getItem(`id${i}`));
       const activity = new Activity(title, description, importance, date, project, notes, isCompleted);
-      activities.push({ activity, id: activities.length });
+      activities.push({ activity, id });
       if (title === '' || title === undefined) {
-        delete activities[activities.length - 1];
+        activities.splice(activities.length - 1, 1);
       }
     }
   }
-};
+}());// since needed immediately in opening of page created IIFE
 
-readStorage();
-
+// module for data functions
 const moduleData = (() => {
   const getData = () => {
     const title = document.querySelector('input[name="title"]').value;
@@ -233,7 +230,8 @@ const getProjects = () => {
 const removeActivity = (id) => {
   for (const act in activities) {
     if (id == activities[act].id) {
-      delete activities[act];
+      const index = activities.indexOf(activities[act]);
+      activities.splice(index, 1);
     }
   }
 
@@ -309,6 +307,15 @@ const stats = (() => {
 })();
 
 const getPi = (array) => performanceAnalysis.pi(array);
+
+// to call sample-data from imported starting-data.csv
+const callDefault = () => {
+  for (let i = 1; i < startingData.length; i += 1) {
+    const activity = new Activity(startingData[i][0], startingData[i][1], startingData[i][2], startingData[i][3], startingData[i][4], startingData[i][5], startingData[i][6]);
+    activities.push({ activity, id: activities.length });
+  }
+  saveToStorage();
+};
 
 export {
   saveActivity,

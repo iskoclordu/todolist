@@ -254,6 +254,7 @@ const displayAndActivators = (() => {
       displayPerformanceIndex(displayActivities);
     }
     displayStats();
+    console.log(getActivities());
     return true;
   }
 
