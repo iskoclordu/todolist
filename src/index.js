@@ -1,25 +1,22 @@
 import './style.css';
-// import { format, compareAsc } from 'date-fns';
 import {
   saveActivity, editActivity, filterActivities, getDisplayActivities,
   getProjects, removeActivity, markActivityCompleted,
   markActivityIncompleted,
-  getActivities, performanceAnalysis, sort,
+  getActivities, performanceAnalysis, sort, stats, callDefault,
+  // the activities would be placed in a module in the file. no need for this much imports. will be checked later
 } from './activity';
-// eslint-disable-next-line import/no-cycle
-import {
-  callhidePopup, callresetForm, callCreateActivityDiv, callDisplayProjects,
-  callDisplayActivityReadOnly, callDisplayActivityEditable,
-} from './domMan';
+import moduleDom from './domMan';
 import { validCheckRequired, validCheckExist } from './validation';
 
 let filterHeader = 'Today';
+// in landing page activities of today will be displayed
 let currentFilter = 'filterActivitiesToday';
-
-let displayActivitiesSorted = getDisplayActivities().sort(sort.byDate);
 
 let parameter = 'date';
 const getSortBy = (param) => {
+  let displayActivitiesSorted = '';
+  // this to sort displayed activities
   if (getDisplayActivities().length > 0) {
     if (param === 'title') {
       displayActivitiesSorted = getDisplayActivities().sort(sort.byTitle);
@@ -29,20 +26,7 @@ const getSortBy = (param) => {
       displayActivitiesSorted = getDisplayActivities().sort(sort.byImportance);
     }
   }
-};
-
-const projectListener = () => {
-  const projects = document.querySelectorAll('.nav-container .nav-projects .project-list a');
-  for (let i = 0; i < projects.length; i += 1) {
-    // eslint-disable-next-line no-loop-func
-    projects[i].addEventListener('click', (e) => {
-      const projectName = e.target.id;
-      filterHeader = projectName;
-      currentFilter = 'filterActivitiesByProject';
-      // eslint-disable-next-line no-use-before-define
-      filterAndShow(currentFilter, `${projectName}`);
-    });
-  }
+  return displayActivitiesSorted;
 };
 
 const saveButtonActivator = () => {
@@ -53,208 +37,285 @@ const saveButtonActivator = () => {
 
 const cancelButton = document.querySelector('.popup.activity .buttons .cancel');
 cancelButton.addEventListener('click', () => {
-  callresetForm();
+  moduleDom.resetForm();
   saveButtonActivator();
 });
 
-const deleteButtonActivator = () => {
-  const deleteButtons = document.querySelectorAll('.todo .buttons button.remove');
-  for (let i = 0; i < deleteButtons.length; i += 1) {
-    // eslint-disable-next-line no-loop-func
-    deleteButtons[i].addEventListener('click', (e) => {
-      let indexNumber = '';
-      if (e.target.nodeName === 'BUTTON') {
-        indexNumber = e.target.id;
-      } else if (e.target.nodeName === 'svg') {
-        indexNumber = e.target.parentNode.id;
-      } else if ((e.target.nodeName === 'path')) {
-        indexNumber = e.target.parentNode.parentNode.id;
-      } else {
-        indexNumber = e.target.parentNode.id;
-      }
-      console.log(indexNumber);
-
-      removeActivity(indexNumber);
-      // eslint-disable-next-line no-use-before-define
-      filterAndShow(currentFilter);
-      saveButtonActivator();
-    });
-  }
-
-  const deleteButton = document.querySelector('.popup .buttons .remove');
-  if (deleteButton !== null) {
-    deleteButton.addEventListener('click', (e) => {
-      let indexNumber = '';
-      if (e.target.nodeName === 'BUTTON') {
-        indexNumber = e.target.id;
-      } else {
-        indexNumber = e.target.parentNode.id;
-      }
-
-      removeActivity(indexNumber);
-      // eslint-disable-next-line no-use-before-define
-      filterAndShow(currentFilter);
-
-      callhidePopup();
-      saveButtonActivator();
-    });
-  }
-};
-
-const editButtonActivator = () => {
-  const editButton = document.querySelector('.popup .buttons .edit');
-  if (editButton !== null) {
-    editButton.addEventListener('click', (e) => {
-      let indexNumber = '';
-      if (e.target.nodeName === 'BUTTON') {
-        indexNumber = e.target.id;
-      } else {
-        indexNumber = e.target.parentNode.id;
-      }
-
-      if (validCheckRequired()) {
-        editActivity(indexNumber);
-        callhidePopup();
-        callresetForm();
-        // eslint-disable-next-line no-use-before-define
-        filterAndShow(currentFilter);
-        saveButtonActivator();
-      }
-    });
-  }
-};
-
-function showActivities() {
-  const mainContainer = document.querySelector('.todos');
-  mainContainer.innerHTML = '';
-  const header = document.createElement('div');
-  header.classList.add('header');
-  header.innerHTML = `${filterHeader}`;
-  mainContainer.appendChild(header);
-  console.log(getDisplayActivities());
-  getSortBy(parameter);
-  const displayActivities = displayActivitiesSorted;
-  console.log(displayActivitiesSorted);
-  for (let i = 0; i < displayActivities.length; i += 1) {
-    if (displayActivities[i] !== undefined) {
-      callCreateActivityDiv(displayActivities, i, '.todos');
-    }
-  }
-
-  const projects = getProjects();
-  if (projects.length > 0) {
-    callDisplayProjects(projects);
-  }
-
-  projectListener();
-
-  deleteButtonActivator();
-
-  if (displayActivities.length > 0) {
-    const currentActivities = document.querySelectorAll('.todos .todo a');
-    for (let i = 0; i < currentActivities.length; i += 1) {
+const displayAndActivators = (() => {
+  const deleteButtonActivator = () => {
+    const deleteButtons = document.querySelectorAll('.todo .buttons button.remove');
+    for (let i = 0; i < deleteButtons.length; i += 1) {
       // eslint-disable-next-line no-loop-func
-      currentActivities[i].addEventListener('click', (e) => {
-        const idData = e.target.id;
-        const activities = getActivities();
-        callDisplayActivityReadOnly(activities, idData);
-        deleteButtonActivator();
+      deleteButtons[i].addEventListener('click', (e) => {
+        let id = '';
+        if (e.target.nodeName === 'BUTTON') {
+          id = e.target.id;
+        } else if (e.target.nodeName === 'svg') {
+          id = e.target.parentNode.id;
+        } else if ((e.target.nodeName === 'path')) {
+          id = e.target.parentNode.parentNode.id;
+        } else {
+          id = e.target.parentNode.id;
+        }
+
+        removeActivity(id);
+        // incase of deleting an element of project, filter and show will need an projectName
+        // since the activities filtered by project name, filterHeader parsed directly.
+        // eslint-disable-next-line no-use-before-define
+        filterAndShow(currentFilter, `${filterHeader}`);
       });
     }
 
-    const currentActivitiesCheck = document.querySelectorAll('.todos .todo input[type="checkbox"]');
-    for (let i = 0; i < currentActivitiesCheck.length; i += 1) {
-      // eslint-disable-next-line no-loop-func
-      currentActivitiesCheck[i].addEventListener('change', (e) => {
-        const idData = e.target.parentNode.id;
-        if (e.target.checked) {
-          markActivityCompleted(idData);
-          showActivities();
-        } else if (!e.target.checked) {
-          markActivityIncompleted(idData);
-          showActivities();
+    const deleteButton = document.querySelector('.popup .buttons .remove');
+    if (deleteButton !== null) {
+      deleteButton.addEventListener('click', (e) => {
+        let id = '';
+        if (e.target.nodeName === 'BUTTON') {
+          id = e.target.id;
+        } else {
+          id = e.target.parentNode.id;
+        }
+
+        removeActivity(id);
+        // eslint-disable-next-line no-use-before-define
+        filterAndShow(currentFilter, `${filterHeader}`);
+
+        moduleDom.hideActivityWindow();
+        saveButtonActivator();
+      });
+    }
+  };
+
+  const editButtonActivator = () => {
+    const editButton = document.querySelector('.popup .buttons .edit');
+    if (editButton !== null) {
+      editButton.addEventListener('click', (e) => {
+        let id = '';
+        if (e.target.nodeName === 'BUTTON') {
+          id = e.target.id;
+        } else {
+          id = e.target.parentNode.id;
+        }
+
+        if (validCheckRequired()) {
+          editActivity(id);
+          moduleDom.hideActivityWindow();
+          moduleDom.resetForm();
+          // eslint-disable-next-line no-use-before-define
+          filterAndShow(currentFilter, `${filterHeader}`);
+          saveButtonActivator();
         }
       });
     }
+  };
 
+  const editButtonsActivator = () => {
+    // this fuction to activate edit buttons on activity divisions
     const editButtons = document.querySelectorAll('.todo .buttons button.edit');
     const activities = getActivities();
     for (let i = 0; i < editButtons.length; i += 1) {
       // eslint-disable-next-line no-loop-func
       editButtons[i].addEventListener('click', (e) => {
-        let indexNumber = '';
+        // gets id data of which activity edit button is clicked.
+        // Since event listener add by click, ther are three posibility for event to get;
+        // button its self svg file on button and path in svg file for all three posibility,
+        // to make sure returning data is correct id, which is id of button itsself
+        let idData = '';
         if (e.target.nodeName === 'BUTTON') {
-          indexNumber = e.target.id;
+          idData = e.target.id;
         } else if (e.target.nodeName === 'svg') {
-          indexNumber = e.target.parentNode.id;
+          idData = e.target.parentNode.id;
         } else if ((e.target.nodeName === 'path')) {
-          indexNumber = e.target.parentNode.parentNode.id;
+          idData = e.target.parentNode.parentNode.id;
         } else {
-          indexNumber = e.target.parentNode.id;
+          idData = e.target.parentNode.id;
         }
 
-        callDisplayActivityEditable(activities, indexNumber);
+        for (const act in activities) {
+          // this == two let expression to work with different styles, since ids are numbers but returning from local storage as strings.
+          if (idData == activities[act].id) {
+            moduleDom.displayActivityEditable(activities[act].activity, activities[act].id);
+          }
+        }
+        // after displaying activity popup window following two functions are needed to invoked for activating buttons on popup.
+        // unlike delete button activator, edit button activators have two different functions. one for edit buttons in mainpage and other for the button in popupwindow.
         editButtonActivator();
         deleteButtonActivator();
       });
     }
+  };
 
+  const checkBoxActivator = () => {
+    const currentActivitiesCheck = document.querySelectorAll('.todos .todo input[type="checkbox"]');
+    for (let i = 0; i < currentActivitiesCheck.length; i += 1) {
+      currentActivitiesCheck[i].addEventListener('change', (e) => {
+        const idData = e.target.parentNode.id;
+        if (e.target.checked) {
+          markActivityCompleted(idData);
+        } else if (!e.target.checked) {
+          markActivityIncompleted(idData);
+        }
+        // eslint-disable-next-line no-use-before-define
+        showActivities();
+      });
+    }
+  };
+
+  const titleActivator = () => {
+    // when user clicks on activity title activity will be displayed.
+    const currentActivities = document.querySelectorAll('.todos .todo a');
+    for (let i = 0; i < currentActivities.length; i += 1) {
+      // eslint-disable-next-line no-loop-func
+      currentActivities[i].addEventListener('click', (e) => {
+        const { id } = e.target;
+        const activities = getActivities();
+        // gets current activity list. checks to which activity that clicked title belongs. Then displays it
+        for (const act in activities) {
+          if (activities[act].id == id) {
+            // activity will be read only. Only delete will be active
+            moduleDom.displayActivityReadOnly(activities[act].activity, id);
+          }
+        }
+        // this activates delete button on activity window.
+        deleteButtonActivator();
+      });
+    }
+  };
+
+  const projectActivator = () => {
+    const projects = document.querySelectorAll('.nav-container .nav-projects .project-list a');
+    for (let i = 0; i < projects.length; i += 1) {
+    // eslint-disable-next-line no-loop-func
+      projects[i].addEventListener('click', (e) => {
+        const projectName = e.target.id;
+        filterHeader = projectName;
+        currentFilter = 'filterActivitiesByProject';
+        // eslint-disable-next-line no-use-before-define
+        filterAndShow(currentFilter, `${projectName}`);
+      });
+    }
+  };
+
+  const displayPerformanceIndex = (activityArray) => {
     const pi = document.querySelector('.performance-info-container .pi .result');
-    const piRate = performanceAnalysis.pi(displayActivities);
+    const piRate = performanceAnalysis.pi(activityArray);
     pi.innerHTML = `${piRate}`;
     const ipi = document.querySelector('.performance-info-container .ipi .result');
-    const ipiRate = performanceAnalysis.ipi(displayActivities);
+    const ipiRate = performanceAnalysis.ipi(activityArray);
     ipi.innerHTML = `${ipiRate}`;
-  } else {
-    const pi = document.querySelector('.performance-info-container .pi .result');
-    const ipi = document.querySelector('.performance-info-container .ipi .result');
-    pi.innerHTML = '0';
-    ipi.innerHTML = '0';
+  };
+
+  const displayStats = () => {
+    const todayStat = document.querySelector('button.today span.stat');
+    todayStat.innerHTML = `${stats.noOfActivitiesToday()}`;
+
+    const thisWeekStat = document.querySelector('button.this-week span.stat');
+    thisWeekStat.innerHTML = `${stats.noOfActivitiesThisWeek()}`;
+
+    const allActivitiesStat = document.querySelector('button.all-activities span.stat');
+    allActivitiesStat.innerHTML = `${stats.noOfActivitiesAll()}`;
+  };
+
+  // this function makes a lot! key function of all display. For architecture it doesnt look good.
+  // should be seperated.
+  function showActivities() {
+    const mainContainer = document.querySelector('.todos');
+    mainContainer.innerHTML = '';
+    const header = document.createElement('div');
+    header.classList.add('header');
+    header.innerHTML = `${filterHeader}`;
+    mainContainer.appendChild(header);
+
+    const displayActivities = getSortBy(parameter);
+
+    for (const act in displayActivities) {
+      if (displayActivities[act] !== undefined) {
+        moduleDom.createActivityDiv(displayActivities[act].activity, displayActivities[act].id, '.todos');
+      }
+    }
+
+    const projects = getProjects();
+    if (projects.length > 0) {
+      moduleDom.displayProjects(projects);
+    }
+    // this activates project names for click event listener
+    projectActivator();
+
+    // this statement to make this lines works if there is an activity.
+    if (displayActivities.length > 0) {
+      titleActivator();
+      checkBoxActivator();
+      // this activates delete button for each activity division.
+      // other delete button on popup window activated in function that calls popup.
+      deleteButtonActivator();
+
+      editButtonsActivator();
+
+      displayPerformanceIndex(displayActivities);
+    }
+    displayStats();
+    return true;
   }
-  return true;
-}
+
+  return {
+    showActivities,
+  };
+})();
 
 function filterAndShow(filter, arg) {
   filterActivities(filter, arg);
-  showActivities();
+  displayAndActivators.showActivities();
 }
 
 function save() {
   if (validCheckRequired() && validCheckExist()) {
+    // first validates form and then invokes save function fron activities module folder.
     saveActivity();
-    callhidePopup();
-    callresetForm();
+    // when activity saved toggles popup display to off.
+    moduleDom.hideActivityWindow();
+    // reset forms. to clear values and class names for being invalid if exist
+    moduleDom.resetForm();
     filterAndShow(currentFilter);
   }
 }
 
-const todayButton = document.querySelector('.nav-container button.today');
-todayButton.addEventListener('click', () => {
-  filterHeader = 'Today';
-  currentFilter = 'filterActivitiesToday';
-  filterAndShow(currentFilter);
-});
+const permanentButtonsActivator = () => {
+  const todayButton = document.querySelector('.nav-container button.today');
+  todayButton.addEventListener('click', () => {
+    filterHeader = 'Today';
+    currentFilter = 'filterActivitiesToday';
+    filterAndShow(currentFilter);
+  });
 
-const thisWeekButton = document.querySelector('.nav-container button.this-week');
-thisWeekButton.addEventListener('click', () => {
-  filterHeader = 'This Week';
-  currentFilter = 'filterActivitiesThisWeek';
-  filterAndShow(currentFilter);
-});
+  const thisWeekButton = document.querySelector('.nav-container button.this-week');
+  thisWeekButton.addEventListener('click', () => {
+    filterHeader = 'This Week';
+    currentFilter = 'filterActivitiesThisWeek';
+    filterAndShow(currentFilter);
+  });
 
-const allActivitiesButton = document.querySelector('.nav-container button.all-activities');
-allActivitiesButton.addEventListener('click', () => {
-  filterHeader = 'All';
-  currentFilter = 'allActivities';
-  filterAndShow(currentFilter);
-});
+  const allActivitiesButton = document.querySelector('.nav-container button.all-activities');
+  allActivitiesButton.addEventListener('click', () => {
+    filterHeader = 'All';
+    currentFilter = 'allActivities';
+    filterAndShow(currentFilter);
+  });
 
-const sortSelect = document.querySelector('.sort-choose select');
-sortSelect.addEventListener('change', (e) => {
-  parameter = e.target.value;
-  getSortBy(parameter);
-  filterAndShow(currentFilter);
-});
+  const sortSelect = document.querySelector('.sort-choose select');
+  sortSelect.addEventListener('change', (e) => {
+    parameter = e.target.value;
+    getSortBy(parameter);
+    filterAndShow(currentFilter);
+  });
+};
 
+// landing functions
 filterAndShow(currentFilter);
 saveButtonActivator();
+permanentButtonsActivator();
+
+const logo = document.querySelector('.header-container button.sample-data');
+logo.addEventListener('click', () => {
+  callDefault();
+  filterAndShow(currentFilter, `${filterHeader}`);
+});

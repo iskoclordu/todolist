@@ -12,6 +12,8 @@
     },
     "rules": {
        "no-underscore-dangle": 0,
-       "max-len":"off"
+       "max-len":"off",
+       "eqeqeq" : "off",
+       "no-restricted-syntax": "off"
     }
 }

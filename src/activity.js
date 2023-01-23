@@ -18,15 +18,16 @@ class Activity {
 
 const saveToStorage = () => {
   localStorage.clear();
+
   for (let i = 0; i < activities.length; i += 1) {
     if (activities[i] !== undefined) {
-      localStorage.setItem(`title${i}`, `${activities[i].activity.title}`);
-      localStorage.setItem(`description${i}`, `${activities[i].activity.description}`);
-      localStorage.setItem(`importance${i}`, `${activities[i].activity.importance}`);
-      localStorage.setItem(`date${i}`, `${activities[i].activity.date}`);
-      localStorage.setItem(`project${i}`, `${activities[i].activity.project}`);
-      localStorage.setItem(`notes${i}`, `${activities[i].activity.notes}`);
-      localStorage.setItem(`isCompleted${i}`, `${activities[i].activity.isCompleted}`);
+      localStorage.setItem(`title${activities[i].id}`, `${activities[i].activity.title}`);
+      localStorage.setItem(`description${activities[i].id}`, `${activities[i].activity.description}`);
+      localStorage.setItem(`importance${activities[i].id}`, `${activities[i].activity.importance}`);
+      localStorage.setItem(`date${activities[i].id}`, `${activities[i].activity.date}`);
+      localStorage.setItem(`project${activities[i].id}`, `${activities[i].activity.project}`);
+      localStorage.setItem(`notes${activities[i].id}`, `${activities[i].activity.notes}`);
+      localStorage.setItem(`isCompleted${activities[i].id}`, `${activities[i].activity.isCompleted}`);
     }
   }
 };
@@ -36,14 +37,8 @@ const callDefault = () => {
     const activity = new Activity(startingData[i][0], startingData[i][1], startingData[i][2], startingData[i][3], startingData[i][4], startingData[i][5], startingData[i][6]);
     activities.push({ activity, id: activities.length });
   }
-  console.table(activities);
   saveToStorage();
 };
-
-const logo = document.querySelector('.header-container .logo-container a span');
-logo.addEventListener('click', () => {
-  callDefault();
-});
 
 const getHighestIndex = (array) => {
   const arrayRaw = Object.getOwnPropertyNames(array);
@@ -59,11 +54,9 @@ const isNull = (value) => (value !== null ? value : '');
 const isNullDate = (value) => (value !== null ? value : format(new Date(), 'MM/dd/yyyy'));
 
 const readStorage = () => {
-  console.log(localStorage);
   const length = getHighestIndex(localStorage);
 
   if (localStorage.length >= 7) {
-    console.log(Math.round(localStorage.length / 7));
     for (let i = 0; i <= length; i += 1) {
       const title = isNull(localStorage.getItem(`title${i}`));
       const description = isNull(localStorage.getItem(`description${i}`));
@@ -75,11 +68,9 @@ const readStorage = () => {
       const activity = new Activity(title, description, importance, date, project, notes, isCompleted);
       activities.push({ activity, id: activities.length });
       if (title === '' || title === undefined) {
-        console.log(activities.length - 1);
         delete activities[activities.length - 1];
       }
     }
-    console.log(activities);
   }
 };
 
@@ -98,7 +89,7 @@ const moduleData = (() => {
     return new Activity(title, description, importance, date, project, notes);
   };
 
-  const editData = (indexNumber) => {
+  const editData = (id) => {
     const title = document.querySelector('input[name="title"]').value;
     const description = document.querySelector('input[name="description"]').value;
     const importance = document.querySelector('input[name="importance"]').value;
@@ -106,13 +97,16 @@ const moduleData = (() => {
     const date = format(new Date(dateRaw), 'MM/dd/yyyy');
     const project = document.querySelector('input[name="project"]').value;
     const notes = document.querySelector('textarea[name="notes"]').value;
-
-    activities[indexNumber].activity.title = title;
-    activities[indexNumber].activity.description = description;
-    activities[indexNumber].activity.importance = importance;
-    activities[indexNumber].activity.date = date;
-    activities[indexNumber].activity.project = project;
-    activities[indexNumber].activity.notes = notes;
+    for (const act in activities) {
+      if (activities[act].id == id) {
+        activities[act].activity.title = title;
+        activities[act].activity.description = description;
+        activities[act].activity.importance = importance;
+        activities[act].activity.date = date;
+        activities[act].activity.project = project;
+        activities[act].activity.notes = notes;
+      }
+    }
   };
 
   return {
@@ -127,8 +121,8 @@ const saveActivity = () => {
   saveToStorage();
 };
 
-const editActivity = (indexNumber) => {
-  moduleData.editData(indexNumber);
+const editActivity = (id) => {
+  moduleData.editData(id);
   localStorage.clear();
   saveToStorage();
   return activities;
@@ -236,22 +230,33 @@ const getProjects = () => {
   return removeNull(array1);
 };
 
-const removeActivity = (indexNumber) => {
-  console.log(`this # is about to delete ${indexNumber + 1}`);
-  delete activities[indexNumber];
-  console.table(activities);
+const removeActivity = (id) => {
+  for (const act in activities) {
+    if (id == activities[act].id) {
+      delete activities[act];
+    }
+  }
 
-  saveToStorage();
-  console.table(localStorage);
-};
-
-const markActivityCompleted = (indexNumber) => {
-  activities[indexNumber].activity.isCompleted = true;
   saveToStorage();
 };
 
-const markActivityIncompleted = (indexNumber) => {
-  activities[indexNumber].activity.isCompleted = false;
+const markActivityCompleted = (idData) => {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const act in activities) {
+    if (idData == activities[act].id) {
+      activities[act].activity.isCompleted = true;
+    }
+  }
+  saveToStorage();
+};
+
+const markActivityIncompleted = (idData) => {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const act in activities) {
+    if (idData == activities[act].id) {
+      activities[act].activity.isCompleted = false;
+    }
+  }
   saveToStorage();
 };
 
@@ -316,6 +321,7 @@ export {
   markActivityCompleted,
   markActivityIncompleted,
   getPi,
+  callDefault,
   performanceAnalysis,
   stats,
   sort,
