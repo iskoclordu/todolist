@@ -1,10 +1,6 @@
 import './style.css';
 import {
-  saveActivity, editActivity, filterActivities, getDisplayActivities,
-  getProjects, removeActivity, markActivityCompleted,
-  markActivityIncompleted,
-  getActivities, performanceAnalysis, sort, stats, callDefault,
-  // the activities would be placed in a module in the file. no need for this much imports. will be checked later
+  moduleData, filterActivities, parseInfo, sort,
 } from './activity';
 import moduleDom from './domMan';
 import { validCheckRequired, validCheckExist } from './validation';
@@ -17,13 +13,13 @@ let parameter = 'date';
 const getSortBy = (param) => {
   let displayActivitiesSorted = '';
   // this to sort displayed activities
-  if (getDisplayActivities().length > 0) {
+  if (parseInfo.getDisplayActivities().length > 0) {
     if (param === 'title') {
-      displayActivitiesSorted = getDisplayActivities().sort(sort.byTitle);
+      displayActivitiesSorted = parseInfo.getDisplayActivities().sort(sort.byTitle);
     } if (param === 'date') {
-      displayActivitiesSorted = getDisplayActivities().sort(sort.byDate);
+      displayActivitiesSorted = parseInfo.getDisplayActivities().sort(sort.byDate);
     } if (param === 'importance') {
-      displayActivitiesSorted = getDisplayActivities().sort(sort.byImportance);
+      displayActivitiesSorted = parseInfo.getDisplayActivities().sort(sort.byImportance);
     }
   }
   return displayActivitiesSorted;
@@ -58,7 +54,7 @@ const displayAndActivators = (() => {
           id = e.target.parentNode.id;
         }
 
-        removeActivity(id);
+        moduleData.removeActivity(id);
         // incase of deleting an element of project, filter and show will need an projectName
         // since the activities filtered by project name, filterHeader parsed directly.
         // eslint-disable-next-line no-use-before-define
@@ -76,7 +72,7 @@ const displayAndActivators = (() => {
           id = e.target.parentNode.id;
         }
 
-        removeActivity(id);
+        moduleData.removeActivity(id);
         // eslint-disable-next-line no-use-before-define
         filterAndShow(currentFilter, `${filterHeader}`);
 
@@ -98,7 +94,7 @@ const displayAndActivators = (() => {
         }
 
         if (validCheckRequired()) {
-          editActivity(id);
+          moduleData.editActivity(id);
           moduleDom.hideActivityWindow();
           moduleDom.resetForm();
           // eslint-disable-next-line no-use-before-define
@@ -112,7 +108,7 @@ const displayAndActivators = (() => {
   const editButtonsActivator = () => {
     // this fuction to activate edit buttons on activity divisions
     const editButtons = document.querySelectorAll('.todo .buttons button.edit');
-    const activities = getActivities();
+    const activities = parseInfo.getActivities();
     for (let i = 0; i < editButtons.length; i += 1) {
       // eslint-disable-next-line no-loop-func
       editButtons[i].addEventListener('click', (e) => {
@@ -151,9 +147,9 @@ const displayAndActivators = (() => {
       currentActivitiesCheck[i].addEventListener('change', (e) => {
         const idData = e.target.parentNode.id;
         if (e.target.checked) {
-          markActivityCompleted(idData);
+          moduleData.markActivityCompleted(idData);
         } else if (!e.target.checked) {
-          markActivityIncompleted(idData);
+          moduleData.markActivityIncompleted(idData);
         }
         // eslint-disable-next-line no-use-before-define
         showActivities();
@@ -168,7 +164,7 @@ const displayAndActivators = (() => {
       // eslint-disable-next-line no-loop-func
       currentActivities[i].addEventListener('click', (e) => {
         const { id } = e.target;
-        const activities = getActivities();
+        const activities = parseInfo.getActivities();
         // gets current activity list. checks to which activity that clicked title belongs. Then displays it
         for (const act in activities) {
           if (activities[act].id == id) {
@@ -198,22 +194,22 @@ const displayAndActivators = (() => {
 
   const displayPerformanceIndex = (activityArray) => {
     const pi = document.querySelector('.performance-info-container .pi .result');
-    const piRate = performanceAnalysis.pi(activityArray);
+    const piRate = parseInfo.performanceAnalysis.pi(activityArray);
     pi.innerHTML = `${piRate}`;
     const ipi = document.querySelector('.performance-info-container .ipi .result');
-    const ipiRate = performanceAnalysis.ipi(activityArray);
+    const ipiRate = parseInfo.performanceAnalysis.ipi(activityArray);
     ipi.innerHTML = `${ipiRate}`;
   };
 
   const displayStats = () => {
     const todayStat = document.querySelector('button.today span.stat');
-    todayStat.innerHTML = `${stats.noOfActivitiesToday()}`;
+    todayStat.innerHTML = `${parseInfo.stats.noOfActivitiesToday()}`;
 
     const thisWeekStat = document.querySelector('button.this-week span.stat');
-    thisWeekStat.innerHTML = `${stats.noOfActivitiesThisWeek()}`;
+    thisWeekStat.innerHTML = `${parseInfo.stats.noOfActivitiesThisWeek()}`;
 
     const allActivitiesStat = document.querySelector('button.all-activities span.stat');
-    allActivitiesStat.innerHTML = `${stats.noOfActivitiesAll()}`;
+    allActivitiesStat.innerHTML = `${parseInfo.stats.noOfActivitiesAll()}`;
   };
 
   // this function makes a lot! key function of all display. For architecture it doesnt look good.
@@ -234,7 +230,7 @@ const displayAndActivators = (() => {
       }
     }
 
-    const projects = getProjects();
+    const projects = parseInfo.getProjects();
     if (projects.length > 0) {
       moduleDom.displayProjects(projects);
     }
@@ -254,7 +250,6 @@ const displayAndActivators = (() => {
       displayPerformanceIndex(displayActivities);
     }
     displayStats();
-    console.log(getActivities());
     return true;
   }
 
@@ -271,7 +266,7 @@ function filterAndShow(filter, arg) {
 function save() {
   if (validCheckRequired() && validCheckExist()) {
     // first validates form and then invokes save function fron activities module folder.
-    saveActivity();
+    moduleData.saveActivity();
     // when activity saved toggles popup display to off.
     moduleDom.hideActivityWindow();
     // reset forms. to clear values and class names for being invalid if exist
@@ -317,6 +312,6 @@ permanentButtonsActivator();
 
 const logo = document.querySelector('.header-container button.sample-data');
 logo.addEventListener('click', () => {
-  callDefault();
+  moduleData.callDefault();
   filterAndShow(currentFilter, `${filterHeader}`);
 });

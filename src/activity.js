@@ -74,7 +74,7 @@ const isNullDate = (value) => (value !== null ? value : format(new Date(), 'MM/d
 
 // module for data functions
 const moduleData = (() => {
-  const getData = () => {
+  const _getData = () => {
     const title = document.querySelector('input[name="title"]').value;
     const description = document.querySelector('input[name="description"]').value;
     const importance = document.querySelector('input[name="importance"]').value;
@@ -86,7 +86,7 @@ const moduleData = (() => {
     return new Activity(title, description, importance, date, project, notes);
   };
 
-  const editData = (id) => {
+  const _editData = (id) => {
     const title = document.querySelector('input[name="title"]').value;
     const description = document.querySelector('input[name="description"]').value;
     const importance = document.querySelector('input[name="importance"]').value;
@@ -106,24 +106,68 @@ const moduleData = (() => {
     }
   };
 
+  const saveActivity = () => {
+    const activity = _getData();
+    activities.push({ activity, id: activities.length });
+    saveToStorage();
+  };
+
+  const editActivity = (id) => {
+    _editData(id);
+    localStorage.clear();
+    saveToStorage();
+    return activities;
+  };
+
+  const removeActivity = (id) => {
+    for (const act in activities) {
+      if (id == activities[act].id) {
+        const index = activities.indexOf(activities[act]);
+        activities.splice(index, 1);
+      }
+    }
+
+    saveToStorage();
+  };
+
+  const markActivityCompleted = (idData) => {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const act in activities) {
+      if (idData == activities[act].id) {
+        activities[act].activity.isCompleted = true;
+      }
+    }
+    saveToStorage();
+  };
+
+  const markActivityIncompleted = (idData) => {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const act in activities) {
+      if (idData == activities[act].id) {
+        activities[act].activity.isCompleted = false;
+      }
+    }
+    saveToStorage();
+  };
+
+  // to call sample-data from imported starting-data.csv
+  const callDefault = () => {
+    for (let i = 1; i < startingData.length; i += 1) {
+      const activity = new Activity(startingData[i][0], startingData[i][1], startingData[i][2], startingData[i][3], startingData[i][4], startingData[i][5], startingData[i][6]);
+      activities.push({ activity, id: activities.length });
+    }
+    saveToStorage();
+  };
+
   return {
-    getData,
-    editData,
+    saveActivity,
+    editActivity,
+    removeActivity,
+    markActivityCompleted,
+    markActivityIncompleted,
+    callDefault,
   };
 })();
-
-const saveActivity = () => {
-  const activity = moduleData.getData();
-  activities.push({ activity, id: activities.length });
-  saveToStorage();
-};
-
-const editActivity = (id) => {
-  moduleData.editData(id);
-  localStorage.clear();
-  saveToStorage();
-  return activities;
-};
 
 const moduleFilter = (() => {
   const allActivities = () => {
@@ -208,128 +252,87 @@ const filterActivities = (filter, arg) => {
   displayActivities = (moduleFilter[filter](arg));
 };
 
-// eslint-disable-next-line max-len
-const getDisplayActivities = () => displayActivities;
+const parseInfo = (() => {
+  const getDisplayActivities = () => displayActivities;
 
-const getProjects = () => {
-  const arrayOfProjects = activities.map((obj) => obj.activity.project);
-  function removeDuplicates(arr) {
-    return arr.filter((
-      item,
-      index,
-    ) => arr.indexOf(item) === index);
-  }
+  const getActivities = () => activities;
 
-  function removeNull(arr) {
-    return arr.filter((project) => project !== '');
-  }
-  const array1 = removeDuplicates(arrayOfProjects);
-  return removeNull(array1);
-};
-
-const removeActivity = (id) => {
-  for (const act in activities) {
-    if (id == activities[act].id) {
-      const index = activities.indexOf(activities[act]);
-      activities.splice(index, 1);
+  const getProjects = () => {
+    const arrayOfProjects = activities.map((obj) => obj.activity.project);
+    function removeDuplicates(arr) {
+      return arr.filter((
+        item,
+        index,
+      ) => arr.indexOf(item) === index);
     }
-  }
 
-  saveToStorage();
-};
-
-const markActivityCompleted = (idData) => {
-  // eslint-disable-next-line no-restricted-syntax
-  for (const act in activities) {
-    if (idData == activities[act].id) {
-      activities[act].activity.isCompleted = true;
+    function removeNull(arr) {
+      return arr.filter((project) => project !== '');
     }
-  }
-  saveToStorage();
-};
-
-const markActivityIncompleted = (idData) => {
-  // eslint-disable-next-line no-restricted-syntax
-  for (const act in activities) {
-    if (idData == activities[act].id) {
-      activities[act].activity.isCompleted = false;
-    }
-  }
-  saveToStorage();
-};
-
-const getActivities = () => activities;
-
-const performanceAnalysis = (() => {
-  const completedActivities = (array) => array.filter((obj) => obj.activity.isCompleted.toString() === 'true');
-
-  const allActivities = (array) => array;
-
-  const noOfCompletedActivities = (array) => completedActivities(array).length;
-
-  const noOfTotalActivities = (array) => allActivities(array).length;
-
-  const pi = (array) => Math.round((noOfCompletedActivities(array) * 100) / noOfTotalActivities(array)) / 100;
-
-  const importanceCompActs = (array) => completedActivities(array).map((obj) => parseInt(obj.activity.importance, 10));
-
-  const importanceAllActs = (array) => allActivities(array).map((obj) => parseInt(obj.activity.importance, 10));
-
-  const gainedImportance = (array) => {
-    if (importanceCompActs(array).length !== 0) {
-      return importanceCompActs(array).reduce((accumulator, currentValue) => accumulator + currentValue, 0);
-    } return 0;
+    const array1 = removeDuplicates(arrayOfProjects);
+    return removeNull(array1);
   };
-  const totalImportance = (array) => importanceAllActs(array).reduce((accumulator, currentValue) => accumulator + currentValue, 0);
 
-  const ipi = (array) => Math.round((gainedImportance(array) * 100) / totalImportance(array)) / 100;
-  return {
-    pi,
-    ipi,
-  };
-})();
+  const performanceAnalysis = (() => {
+    const completedActivities = (array) => array.filter((obj) => obj.activity.isCompleted.toString() === 'true');
 
-const stats = (() => {
-  const noOfActivitiesToday = () => moduleFilter.filterActivitiesToday().length;
+    const allActivities = (array) => array;
 
-  const noOfActivitiesThisWeek = () => moduleFilter.filterActivitiesThisWeek().length;
+    const noOfCompletedActivities = (array) => completedActivities(array).length;
 
-  const noOfActivitiesAll = () => moduleFilter.allActivities().length;
+    const noOfTotalActivities = (array) => allActivities(array).length;
 
-  const noOfActivitiesProject = (pN) => moduleFilter.filterActivitiesByProject(pN);
+    const pi = (array) => Math.round((noOfCompletedActivities(array) * 100) / noOfTotalActivities(array)) / 100;
+
+    const importanceCompActs = (array) => completedActivities(array).map((obj) => parseInt(obj.activity.importance, 10));
+
+    const importanceAllActs = (array) => allActivities(array).map((obj) => parseInt(obj.activity.importance, 10));
+
+    const gainedImportance = (array) => {
+      if (importanceCompActs(array).length !== 0) {
+        return importanceCompActs(array).reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+      } return 0;
+    };
+    const totalImportance = (array) => importanceAllActs(array).reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+
+    const ipi = (array) => Math.round((gainedImportance(array) * 100) / totalImportance(array)) / 100;
+    return {
+      pi,
+      ipi,
+    };
+  })();
+
+  const stats = (() => {
+    const noOfActivitiesToday = () => moduleFilter.filterActivitiesToday().length;
+
+    const noOfActivitiesThisWeek = () => moduleFilter.filterActivitiesThisWeek().length;
+
+    const noOfActivitiesAll = () => moduleFilter.allActivities().length;
+
+    const noOfActivitiesProject = (pN) => moduleFilter.filterActivitiesByProject(pN);
+
+    return {
+      noOfActivitiesAll,
+      noOfActivitiesToday,
+      noOfActivitiesThisWeek,
+      noOfActivitiesProject,
+    };
+  })();
 
   return {
-    noOfActivitiesAll,
-    noOfActivitiesToday,
-    noOfActivitiesThisWeek,
-    noOfActivitiesProject,
+    getActivities,
+    getDisplayActivities,
+    getProjects,
+
+    performanceAnalysis,
+    stats,
+
   };
 })();
-
-const getPi = (array) => performanceAnalysis.pi(array);
-
-// to call sample-data from imported starting-data.csv
-const callDefault = () => {
-  for (let i = 1; i < startingData.length; i += 1) {
-    const activity = new Activity(startingData[i][0], startingData[i][1], startingData[i][2], startingData[i][3], startingData[i][4], startingData[i][5], startingData[i][6]);
-    activities.push({ activity, id: activities.length });
-  }
-  saveToStorage();
-};
 
 export {
-  saveActivity,
-  editActivity,
-  getActivities,
+  moduleData,
   filterActivities,
-  getDisplayActivities,
-  getProjects,
-  removeActivity,
-  markActivityCompleted,
-  markActivityIncompleted,
-  getPi,
-  callDefault,
-  performanceAnalysis,
-  stats,
+  parseInfo,
   sort,
 };

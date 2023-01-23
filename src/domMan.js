@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { stats } from './activity';
+import { parseInfo } from './activity';
 
 const moduleDomFunctions = (() => {
   function _displayBlur() {
@@ -209,7 +209,7 @@ const moduleDomFunctions = (() => {
     projectList.innerHTML = '';
     for (let i = 0; i < projects.length; i += 1) {
       const a = document.createElement('a');
-      const projectStat = stats.noOfActivitiesProject(projects[i]).length;
+      const projectStat = parseInfo.stats.noOfActivitiesProject(projects[i]).length;
       a.innerHTML = `${projects[i]} <span id=${projects[i]}>${projectStat}</span>`;
       a.setAttribute('id', `${projects[i]}`);
       a.setAttribute('href', '#!');
