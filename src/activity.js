@@ -106,9 +106,22 @@ const moduleData = (() => {
     }
   };
 
+  const getLatestActivityId = () => {
+    // eslint-disable-next-line no-use-before-define
+    const arrayActivities = parseInfo.getActivities();
+    const arrayActivityIDs = arrayActivities.map((obj) => parseInt(obj.id, 10));
+    const arraySorted = arrayActivityIDs.sort((a, b) => a - b);
+    const latestActivityID = arraySorted[arraySorted.length - 1];
+    console.log(latestActivityID);
+    return latestActivityID;
+  };
+
+  // the activity was getting id number with respect to array length
+  // which causes problems after removing and activity and then adding new ones.
+  // so the id number should be appended independently on its own que.
   const saveActivity = () => {
     const activity = _getData();
-    activities.push({ activity, id: activities.length });
+    activities.push({ activity, id: (getLatestActivityId() + 1) });
     saveToStorage();
   };
 
@@ -118,6 +131,10 @@ const moduleData = (() => {
     saveToStorage();
     return activities;
   };
+
+  // this removing activity used to work with delete method.
+  // Hence the algorithm was accepting the id and the index number of an activity is same.
+  // That workflow brought many problems. So the index numbers removed from function arguements.
 
   const removeActivity = (id) => {
     for (const act in activities) {
