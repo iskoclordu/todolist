@@ -28,6 +28,64 @@
   font-style: normal;
 }
 
+@keyframes slideIn {
+  0%{
+    width: 0;
+    position: relative;
+  
+    left: -5rem;
+  }
+  30%{
+  
+    
+  }
+  50%{
+    letter-spacing: 2px;
+  }
+  100%{
+    width: 100%;
+    left: 0;
+    letter-spacing: normal;
+  }
+
+}
+
+@keyframes slideInToDo {
+  0%{
+    width: 0;
+    opacity: 0;
+  }
+  50%{
+    opacity: 1;
+  }
+  100%{
+    width: 95%;
+  }
+
+}
+
+@keyframes fadeIn {
+  0%{
+    opacity: 0;
+  }
+  100%{
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInScale {
+  0%{
+    opacity: 0;
+    transform: scale(0);
+  }
+  100%{
+    opacity: 1;
+    transform: scale(1);
+    transform: translateX(50%) translateY(-50%);
+  }
+  
+}
+
 a{
   text-decoration: none;
   color:inherit;
@@ -194,10 +252,20 @@ body{
   width: 100%;
   display: flex;
   justify-content: space-between;
+
+  
+  animation-name: slideIn;
+  animation-duration: 300ms;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: 1;
+  animation-direction: normal;
+  animation-fill-mode: forwards;
 }
 .nav-projects .project-list span{
   flex: 1;
   text-align: right;
+  animation: none;
+
 }
 
 .nav-projects .project-list a:hover{
@@ -264,6 +332,15 @@ body{
   padding: 1rem 0;
 
   border-bottom: 2px solid var(--color-4);
+
+  animation-name: slideIn;
+  animation-duration: 300ms;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: 1;
+  animation-direction: normal;
+  animation-fill-mode: forwards;
+
+
 }
 
 .todos .todo{
@@ -280,6 +357,8 @@ body{
   margin-right: 1rem;
 
   padding-left: 1rem;
+
+  animation:slideInToDo 300ms ease-in-out 50ms 1 normal forwards
 
  
 }
@@ -482,6 +561,13 @@ body{
   width: 100vw;
   background-color: var(--color-1-transparent);
   backdrop-filter: blur(2px);
+
+  animation-name: fadeIn;
+  animation-duration: 100ms;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: 1;
+  animation-direction: normal;
+  animation-fill-mode: forwards;
 }
 
 .popup, .activity{
@@ -500,6 +586,13 @@ body{
   justify-content: center;
   align-items: stretch;
   padding: 2rem;
+
+  animation-name: fadeInScale;
+  animation-duration: 300ms;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: 1;
+  animation-direction: normal;
+  animation-fill-mode: forwards;
 }
 
 .popup .activity-form {
@@ -511,7 +604,16 @@ body{
   font-family: Standard-Font;
   font-size: 1rem;
   color: var(--color-1);
+
+  animation-name: slideInForm;
+  animation-duration: 600ms;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: 1;
+  animation-delay: 200ms;
+  animation-direction: normal;
+  animation-fill-mode: forwards;
 }
+
 
 .popup .activity-form .form-row{
   display: flex;
