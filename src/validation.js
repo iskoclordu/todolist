@@ -1,5 +1,7 @@
 import { format } from 'date-fns';
-import { getActivities } from './activity';
+import { parseInfo } from './activity';
+
+// validates form for the required inputs. Which are title and date.
 
 export function validCheckRequired() {
   const title = document.querySelector('input[name="title"]').value;
@@ -25,10 +27,14 @@ export function validCheckRequired() {
   }
   return validation;
 }
+
+// after modulating activity.js this updated this forgotten part of the validcheck.
+
+// validates form to avoid the same activity title for the same day.
 export function validCheckExist() {
   const title = document.querySelector('input[name="title"]').value;
   const dateRaw = document.querySelector('input[type="date"]').value;
-  const activities = getActivities();
+  const activities = parseInfo.getActivities();
   const existingTitles = activities.map((obj) => obj.activity.title);
   let validation = true;
 
